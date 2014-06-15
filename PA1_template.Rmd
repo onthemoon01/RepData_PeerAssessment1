@@ -1,20 +1,63 @@
-# Reproducible Research: Peer Assessment 1
+#Reproducible research assignment1
+
+##Load the file (zip file should be in working directory)
+
+```{r download file, echo=TRUE}
+data<-read.csv("activity.csv", stringsAsFactors=F)
+
+```
+
+## Preprocessing the datas
+
+```{r preprocess, echo=TRUE}
+data$steps<-sapply(data$steps, as.numeric)
+data$interval<-sapply(data$interval, as.numeric)
+data$date<-as.Date(data$date)
+```
+
+## mean and median of steps per day
+
+```{r stepmean,echo=TRUE}
+stepperday<-aggregate(data$steps, list(date=data$date), sum)
+stepperday2<-na.omit(stepperday)
+hist(stepperday2$x)
+
+aggregate(data$steps, list(day=data$date), mean)
+aggregate(data$steps, list(day=data$date), median)
+```
+
+## plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+
+```{r step by time, echo=TRUE}
+stepinterval<-aggregate(data$steps, list(interval=data$interval), mean, na.rm=T)
+library(ggplot2)
+qplot(stepinterval$interval, stepinterval$x, geom='line')
+
+a<-max(stepinterval$x)
+b<-subset(stepinterval, x==a, select='interval')
+print(paste("the time interval ",b," contains the maximum number of steps", "(",a,")"))
+````
+## inputing missing values
+```{r missing values,echo=TRUE}
+x<-sum(is.na(data))
+paste("there are ",x, " NAs in the dataset", sep="")
+## replace NA by mean for the given interval, in a new dataset name "data2"
+data$id<-1:length(data$steps)
+temp<-merge(data, stepinterval)
+data2<-temp[order(temp$id),]
+data2<-data2[,c(1,2,3,5)]
+row.names(data2)<-NULL
+for (i in 1:length(data2$steps)){
+        if (is.na(data2$steps[i])){data2[i,2]<-data2[i,4]}
+}
+stepperday<-aggregate(data2$steps, list(date=data2$date), sum)
+stepperday2<-na.omit(stepperday)
+hist(stepperday2$x)
+
+aggregate(data2$steps, list(day=data2$date), mean)
+aggregate(data2$steps, list(day=data2$date), median)
+````
 
 
-## Loading and preprocessing the data
 
 
-
-## What is mean total number of steps taken per day?
-
-
-
-## What is the average daily activity pattern?
-
-
-
-## Imputing missing values
-
-
-
-## Are there differences in activity patterns between weekdays and weekends?
